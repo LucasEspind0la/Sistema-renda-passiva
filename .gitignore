@@ -1,0 +1,15 @@
+# Segredos e ambiente
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+application-local.properties
+application-local.yml
+
+# Uploads de teste
+uploads/
+
+# Sistema
+.DS_Store
+Thumbs.db
