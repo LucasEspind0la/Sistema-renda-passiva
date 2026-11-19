@@ -1,80 +1,70 @@
-#  Projeto de Estudo 💰 Finanças & Renda Passiva
+# Finanças & Renda Passiva
 
+Gestão financeira pessoal com foco em renda passiva e independência financeira.
 
-##  Funcionalidades
+## Tecnologias
 
-###  Dashboard Interativo
-- Visão geral do patrimônio líquido
-- Renda passiva mensal estimada
-- Gastos do mês (fixos e variáveis)
-- Gráfico de fluxo de caixa (receitas vs despesas)
-- Gráfico de distribuição de ativos
-- Cálculo de cobertura de independência financeira
+- **Backend:** Java 21, Spring Boot 3.3.4, Spring Security, Spring Data JPA, Bean Validation
+- **Autenticação:** JWT (jjwt 0.12.6) e senhas com BCrypt
+- **Banco:** PostgreSQL 16 com migrations Flyway
+- **Frontend:** Angular (standalone + signals)
+- **Documentação:** OpenAPI / Swagger UI
+- **Testes:** JUnit 5, Mockito, AssertJ, MockMvc, Testcontainers
+- **Infra:** Docker Compose
 
-###  Gestão de Finanças
-- Cadastro de receitas (salários, proventos, outros)
-- Controle de despesas (fixas e variáveis)
-- Registro de dívidas
-- Categorização automática
-- Recorrência mensal
+## Como rodar
 
-###  Carteira de Ativos
-- Cadastro de investimentos (FIIs, Ações, Renda Fixa, etc.)
-- Acompanhamento de valor investido vs valor atualizado
-- Proventos mensais estimados
-- Rentabilidade por tipo de ativo
-- Evolução patrimonial
+Pré-requisitos: Java 21, Maven, Node.js e Docker.
 
-###  Autenticação e Segurança
-- Login seguro com JWT
-- Criptografia de senhas (BCrypt)
-- Sessões protegidas
-- CORS configurado
+```bash
+# 1) Configuração (o .env não vai para o Git)
+cp -n .env.example .env
+sed -i "s|^JWT_SECRET=.*|JWT_SECRET=$(openssl rand -base64 48)|" .env
+nano .env                       # defina DB_PASSWORD
 
----
+# 2) Banco (porta 5433, para não conflitar com um PostgreSQL local)
+docker compose up -d
 
-##  Telas do Sistema
+# 3) Backend: http://localhost:8080 (Swagger em /swagger-ui.html)
+cd backend
+set -a; source ../.env; set +a
+mvn spring-boot:run
 
-### 🔐 Página de Login
-Interface simples e segura para acesso ao sistema.
+# 4) Frontend: http://localhost:4200
+cd ../frontend && npm install && npm start
+```
 
-![Login](screenshots/login.png)
+O backend não inicia sem `DB_USER`, `DB_PASSWORD` e `JWT_SECRET`.
 
-### 📊 Dashboard Principal
-Acompanhamento completo do patrimônio e métricas financeiras em tempo real.
+## Testes
 
-![Dashboard](screenshots/dashboard.png)
+```bash
+cd backend
+mvn test      # unitários, sem Docker
+mvn verify    # unitários + integração (precisa do Docker)
+```
 
-### 💵 Gestão de Finanças
-Cadastro e controle de receitas, despesas e dívidas com categorização.
+## Regras de cálculo
 
-![Finanças](screenshots/financas.png)
+| Métrica | Fórmula |
+|---|---|
+| Saldo atual | Receitas do mês − Gastos do mês |
+| Patrimônio líquido | Σ valor atual dos ativos − Σ valor remanescente das dívidas |
+| Renda passiva mensal | Σ proventos mensais dos ativos |
+| Cobertura de independência | Renda passiva ÷ Gastos fixos do mês × 100 (nula se não há gastos fixos) |
 
-### 📈 Carteira de Ativos
-Gerenciamento completo da carteira de investimentos e proventos.
+Receitas **únicas** contam só no mês da data, **mensais** a partir da data e **anuais** todo ano no mesmo mês. Gastos do mês são as despesas com vencimento dentro do mês consultado.
 
-![Ativos](screenshots/ativos.png)
+## Arquitetura
 
+- Camadas: web → service → repository → domain, com DTOs `record`.
+- CRUD genérico (`CrudService` / `CrudController`), cada entidade só define o mapeamento.
+- Dados isolados por usuário: toda consulta filtra por `usuario_id`, vindo do JWT.
+- `BigDecimal` / `NUMERIC(15,2)` nos valores, chaves `UUID` e schema versionado pelo Flyway.
+- Erros padronizados em `ProblemDetail` (RFC 7807).
 
-## 🛠️ Tecnologias Utilizadas
+## Segurança
 
-### Backend
-- **Java 21** - Linguagem principal
-- **Spring Boot 3.3.4** - Framework principal
-- **Spring Security** - Autenticação e autorização
-- **Spring Data JPA** - Persistência de dados
-- **PostgreSQL** - Banco de dados relacional
-- **Flyway** - Migrações de banco de dados
-- **JWT (JSON Web Tokens)** - Autenticação stateless
-- **BCrypt** - Criptografia de senhas
-- **Maven** - Gerenciamento de dependências
-- **HikariCP** - Connection pool
-
-### Frontend
-- **Angular/React** - Framework frontend 
-- **TypeScript** - Linguagem tipada
-- **HTML5/CSS3** - Estrutura e estilo
-- **Chart.js/ApexCharts** - Gráficos interativos 
-
-
-
+- Rotas protegidas por JWT; só `/api/auth/**` e a documentação são públicas.
+- Login retorna a mesma mensagem para e-mail inexistente e senha errada.
+- Nenhum segredo no código: tudo vem de variáveis de ambiente.
