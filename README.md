@@ -2,6 +2,21 @@
 
 Gestão financeira pessoal com foco em renda passiva e independência financeira.
 
+## Screenshots
+
+### Login
+![Login](screenshots/login.png)
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### Finanças
+![Finanças](screenshots/financas.png)
+
+### Ativos
+![Ativos](screenshots/ativos.png)
+
+
 ## Tecnologias
 
 - **Backend:** Java 21, Spring Boot 3.3.4, Spring Security, Spring Data JPA, Bean Validation
