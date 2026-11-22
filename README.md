@@ -2,7 +2,6 @@
 
 Gestão financeira pessoal com foco em renda passiva e independência financeira.
 
-## Screenshots
 
 ### Login
 ![Login](screenshots/login.png)
